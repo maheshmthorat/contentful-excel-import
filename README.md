@@ -38,7 +38,7 @@ npm install
 ## 🚀 Usage
 
 1. Prepare your Excel file following the format in **Import-Format.xlsx**.
-2. Add your Contentful credentials (`SPACE_ID`, `ACCESS_TOKEN`) in `app.js`.
+2. Add your Contentful credentials in `.env`.
 3. Run the script:
 
 ```bash

@@ -18,18 +18,6 @@ This tool helps automate bulk content creation without manual entry.
 
 ---
 
-## 📂 Project Structure
-
-```
-├── 📄 app.js             # Main script for import logic
-├── 📄 Import-Format.xlsx # Sample Excel format
-├── 📄 package.json       # Dependencies & scripts
-├── 📄 package-lock.json  # Lock file
-└── 📄 .gitignore         # Ignored files
-```
-
----
-
 ## 🛠️ Installation
 
 1. Clone this repo
@@ -61,12 +49,40 @@ node app.js
 
 ## 📊 Excel Format Example
 
-| Title         | Slug          | Published Date <br>(format: DD-MM-YYYY HH:MM:SS) | Excerpt                 | Card Image <br>(format: https://) | Featured Image <br>(format: https://) | Intro Text           | Editor     | Orange Text      | Source of information | Tags       | News/Inspiration |
-| ------------- | ------------- | ------------------------------------------------ | ----------------------- | --------------------------------- | ------------------------------------- | -------------------- | ---------- | ---------------- | --------------------- | ---------- | ---------------- |
-| Sample Title  | sample-title  | 04-09-2025 14:30:00                              | This is a short excerpt | https://example.com/card.jpg      | https://example.com/featured.jpg      | Intro text goes here | John Doe   | Highlighted text | BBC News              | tech, ai   | News             |
-| Another Title | another-title | 10-09-2025 09:15:00                              | Another excerpt         | https://example.com/card2.jpg     | https://example.com/featured2.jpg     | More intro text      | Jane Smith | Orange note      | The Verge             | design, ux | Inspiration      |
+| Title         | Slug          | Published Date <br>(format: DD-MM-YYYY HH:MM:SS) | Excerpt                 | Featured Image <br>(format: https://) | Editor Content     | Tags       | Content Type ID<br>(contentTypeId) |
+| ------------- | ------------- | ------------------------------------------------ | ----------------------- | ------------------------------------- | ---------- | ---------- | ---------------- |
+| Sample Title  | sample-title  | 16-09-2025 12:15                              | This is a short excerpt | https://example.com/featured.jpg      | &lt;p&gt;Editor&lt;/p&gt;   | tech, ai   | news             |
+| Another Title | another-title | 16-09-2025 12:15                              | Another excerpt         | https://example.com/featured2.jpg     | &lt;p&gt;Editor&lt;/p&gt;   | design, ux | news      |
 
 ---
+
+## 💻 Output
+
+```
+Tag created: tech
+Tag created: ai
+Added - news__ID=>XXX7BLkhpgPUm8fq4Ox63nitr
+Tag created: design
+Tag created: ux
+Added - news__ID=>XXX2iM429jgUuftaofWM4zAmc
+
+✅ Import completed!
+Total Excel Records: 2
+Total Successfully Added: 2
+```
+---
+
+## 📂 Project Structure
+
+```
+├── 📄 app.js             # Main script for import logic
+├── 📄 Import-Format.xlsx # Sample Excel format
+├── 📄 package.json       # Dependencies & scripts
+└── 📄 .gitignore         # Ignored files
+```
+
+---
+
 
 ## ⚡ Roadmap
 

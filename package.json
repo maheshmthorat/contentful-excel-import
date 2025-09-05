@@ -2,7 +2,7 @@
   "dependencies": {
     "contentful-html-rich-text-converter": "^1.0.11",
     "contentful-management": "^11.25.3",
-    "read-excel-file": "^5.8.1",
-    "dotenv": "^17.2.2"
+    "dotenv": "^17.2.2",
+    "read-excel-file": "^5.8.1"
   }
 }

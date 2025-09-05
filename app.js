@@ -24,71 +24,21 @@ emitter.on("messageLogged", async function () {
 
   readXlsxFile("./Import-Format.xlsx").then(async (rows) => {
     const records = rows;
-    records.shift();
-    records.forEach(async (record) => {
+    records.shift(); // remove header row
+    const totalRecords = records.length;
+    let addedCount = 0;
+
+    for (const record of records) {
       const title = record[0];
       const slug = record[1];
       const publishedDate = new Date(record[2]);
       const excerpt = record[3];
-      const cardImage = record[4];
-      const featuredImage = record[5];
-      const introText = record[6];
-      const editor = record[7];
-      const orangeText = record[8];
-      const sourceOfInformation = record[9];
-      const tags = record[10];
+      const featuredImage = record[4];
+      const editor = record[5];
+      const tags = record[6];
+      const contentTypeId = record[7];
 
       const result = parseHtml(editor);
-
-      let cardImageAsset;
-      if (cardImage) {
-        let fileNamePartsCard = cardImage.split(".");
-        fileNamePartsCard =
-          fileNamePartsCard[fileNamePartsCard.length - 1].split("?");
-        const fileExtensionCard = fileNamePartsCard[0];
-
-        cardImageAsset = await client.asset.create(
-          {
-            spaceId: spaceId,
-            environmentId: environmentId,
-            publish: true,
-          },
-          {
-            fields: {
-              title: {
-                "en-US": title,
-              },
-              description: {
-                "en-US": "Asset Uploaded For News - " + title,
-              },
-              file: {
-                "en-US": {
-                  contentType: getMimeType(fileExtensionCard),
-                  fileName: cardImage + "." + fileExtensionCard,
-                  upload: cardImage,
-                },
-              },
-            },
-          }
-        );
-
-        const newAsset = await client.asset.processForLocale(
-          {
-            spaceId: spaceId,
-            environmentId: environmentId,
-          },
-          { ...cardImageAsset },
-          "en-US"
-        );
-        await client.asset.publish(
-          {
-            spaceId: spaceId,
-            environmentId: environmentId,
-            assetId: cardImageAsset.sys.id,
-          },
-          { ...newAsset }
-        );
-      }
 
       let featuredImageAsset;
       if (featuredImage) {
@@ -108,7 +58,7 @@ emitter.on("messageLogged", async function () {
                 "en-US": title,
               },
               description: {
-                "en-US": "Asset Uploaded For News - " + title,
+                "en-US": "Asset Uploaded For Content Type - " + title,
               },
               file: {
                 "en-US": {
@@ -138,6 +88,7 @@ emitter.on("messageLogged", async function () {
           { ...newAsset }
         );
       }
+
       let tagIds;
       if (tags) {
         tagIds = tags.split(",").map((tag) => tag.trim());
@@ -163,34 +114,11 @@ emitter.on("messageLogged", async function () {
           excerpt: {
             "en-US": excerpt,
           },
-          introText: {
-            "en-US": introText,
-          },
           editor: {
             "en-US": result,
           },
-          orangeText: {
-            "en-US": orangeText,
-          },
-          sourceOfInformation: {
-            "en-US": sourceOfInformation
-              .split(",")
-              .map((source) => source.trim()),
-          },
         },
       };
-
-      if (cardImage) {
-        fieldsArr.fields.cardImage = {
-          "en-US": {
-            sys: {
-              type: "Link",
-              linkType: "Asset",
-              id: cardImageAsset?.sys?.id,
-            },
-          },
-        };
-      }
 
       if (featuredImage) {
         fieldsArr.fields.featuredImage = {
@@ -203,11 +131,11 @@ emitter.on("messageLogged", async function () {
           },
         };
       }
+
       if (tagIds && tagIds.length > 0) {
         fieldsArr.metadata = {
           tags: tagIds.map((tagId) => {
             const sanitizedTagId = tagId.replace(/\s+/g, "");
-
             return {
               sys: {
                 type: "Link",
@@ -219,32 +147,40 @@ emitter.on("messageLogged", async function () {
         };
       }
 
-      await client.entry
-        .create(
+      try {
+        const response = await client.entry.create(
           {
             spaceId: spaceId,
             environmentId: environmentId,
-            contentTypeId: "news",
+            contentTypeId: contentTypeId,
             publish: true,
           },
           {
             ...fieldsArr,
           }
-        )
-        .then(async (response) => {
-          console.log(response.sys.id);
+        );
 
-          await client.entry.publish(
-            {
-              spaceId: spaceId,
-              environmentId: environmentId,
-              entryId: response.sys.id,
-            },
-            { ...response }
-          );
-        });
+        console.log("Added - " + contentTypeId + "__ID=>" + response.sys.id);
 
-    });
+        await client.entry.publish(
+          {
+            spaceId: spaceId,
+            environmentId: environmentId,
+            entryId: response.sys.id,
+          },
+          { ...response }
+        );
+
+        addedCount++;
+      } catch (err) {
+        console.error("Failed to add record: " + title, err.message);
+      }
+    }
+
+    // Final log
+    console.log(`\n✅ Import completed!`);
+    console.log(`Total Excel Records: ${totalRecords}`);
+    console.log(`Total Successfully Added: ${addedCount}`);
   });
 
   return;
@@ -268,7 +204,6 @@ emitter.emit("messageLogged");
 async function createTag(client, spaceId, environmentId, tagId) {
   const sanitizedTagId = tagId.replace(/\s+/g, ""); // Remove spaces
   try {
-    // Check if the tag already exists
     await client.tag.get({
       spaceId: spaceId,
       environmentId: environmentId,
@@ -277,7 +212,6 @@ async function createTag(client, spaceId, environmentId, tagId) {
     console.log(`Tag already exists: ${tagId}`);
   } catch (error) {
     if (error.name === "NotFound") {
-      // Tag does not exist, create it
       try {
         await client.tag.createWithId(
           {
@@ -298,7 +232,6 @@ async function createTag(client, spaceId, environmentId, tagId) {
         console.error(`Failed to create tag: ${tagId}`, createError);
       }
     } else {
-      // Some other error occurred
       console.error(`Failed to check tag existence: ${tagId}`, error);
     }
   }
